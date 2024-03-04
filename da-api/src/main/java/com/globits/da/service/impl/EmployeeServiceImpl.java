@@ -111,10 +111,11 @@ public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> impl
                         certificate.getId(), certificate.getProvince().getId());
                 for (EmployeeCertificate employeeCertificate1: employeeCertificates){
                     LocalDate validTo = employeeCertificate1.getValidTo();
-                    if ((certificate1.isPresent() && employeeCertificateDto.getValidTo().isBefore(validTo))
-                            || (employeeCertificates.size() >= 3 && employeeCertificateDto.getValidTo().isBefore(employeeCertificate1.getValidTo()))
+                    LocalDate validFrom = employeeCertificate1.getValidFrom();
+                    if ((certificate1.isPresent() && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
+                            || (employeeCertificates.size() >= 3 && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
                     ) {
-                        throw new RuntimeException("Employee could this certificate by 1 province: " + employeeDto.getId() + "\n" +
+                        throw new RuntimeException("Employee could this certificate by 1 province and <3 certificate : " + employeeDto.getId() + "\n" +
                                 employeeCertificateDto.getCertificate().getId() + "\n" +
                                 employeeDto.getProvinceId());
                     }
