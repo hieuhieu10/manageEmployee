@@ -7,6 +7,7 @@ import com.globits.da.dto.search.EmployeeSearchDto;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,5 +17,6 @@ public interface EmployeeService  {
     List<EmployeeDto> getEmployeesBySearch(EmployeeSearchDto employeeSearchDto);
     void deleteEmployeesById(UUID id);
     ByteArrayOutputStream exportToExcel(List<Employee> employees);
-    EmployeeDto saveEmployee(EmployeeDto employeeDto);
+    List<EmployeeDto> saveEmployees(List<EmployeeDto> employeeDtos);
+    void importEmployees(InputStream excelFile);
 }

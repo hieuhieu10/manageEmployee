@@ -11,8 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,9 +51,23 @@ public class RestEmployeeController {
     }
 
     @RequestMapping(value = "/saveEmployee", method = RequestMethod.POST)
-    public ResponseEntity<EmployeeDto> saveEmployee(@Validated @RequestBody EmployeeDto employeeDto){
-        EmployeeDto result = employeeServiceImpl.saveEmployee(employeeDto);
+    public ResponseEntity<List<EmployeeDto>> saveEmployee(@Validated @RequestBody List<EmployeeDto> employeeDtos){
+        List<EmployeeDto> result = employeeServiceImpl.saveEmployees(employeeDtos);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
-
+    @RequestMapping(value = "/importEmployees", method = RequestMethod.POST)
+    public ResponseEntity<String> importEmployees(@RequestParam("file") MultipartFile file) {
+        // Kiểm tra xem tệp được tải lên có tồn tại không
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty.");
+        }
+        try {
+            // Gọi phương thức importEmployees từ service để xử lý nhập khẩu nhân viên từ tệp Excel
+            employeeServiceImpl.importEmployees(file.getInputStream());
+            return ResponseEntity.ok("Employees imported successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while importing employees.");
+        }
+    }
 }

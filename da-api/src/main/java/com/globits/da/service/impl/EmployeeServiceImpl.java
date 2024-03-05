@@ -17,12 +17,12 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.globits.da.utils.ValidateEmployeExcel.*;
 
 @Service
 public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> implements EmployeeService {
@@ -93,66 +93,141 @@ public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> impl
     }
 
     @Override
-    public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
+    public List<EmployeeDto> saveEmployees(List<EmployeeDto> employeeDtos) {
         Employee employee = new Employee();
         EmployeeCertificate employeeCertificate = new EmployeeCertificate();
-        Province province = provinceRepository.findById(employeeDto.getProvinceId()).orElse(null);
-        District district = districtRepository.findByIdAndProvinceId(employeeDto.getDistrictId(), employeeDto.getProvinceId());
-        Commune commune = communeRepository.findByIdAndDistrictId(employeeDto.getCommuneId(), employeeDto.getDistrictId());
+        for (EmployeeDto employeeDto : employeeDtos) {
+            Province province = provinceRepository.findById(employeeDto.getProvinceId()).orElse(null);
+            District district = districtRepository.findByIdAndProvinceId(employeeDto.getDistrictId(), employeeDto.getProvinceId());
+            Commune commune = communeRepository.findByIdAndDistrictId(employeeDto.getCommuneId(), employeeDto.getDistrictId());
 
-        for (EmployeeCertificate employeeCertificateDto : employeeDto.getEmployeeCertificates()) {
-            Certificate certificate = certificateRepository.findById(employeeCertificateDto.getCertificate().getId()).orElse(null);
-            List<EmployeeCertificate> employeeCertificates = employeeCertificateRepository.findAllByEmployeeIdAndCertificateId(
-                    employeeDto.getId(), employeeCertificateDto.getCertificate().getId());
+            for (EmployeeCertificate employeeCertificateDto : employeeDto.getEmployeeCertificates()) {
+                Certificate certificate = certificateRepository.findById(employeeCertificateDto.getCertificate().getId()).orElse(null);
+                List<EmployeeCertificate> employeeCertificates = employeeCertificateRepository.findAllByEmployeeIdAndCertificateId(
+                        employeeDto.getId(), employeeCertificateDto.getCertificate().getId());
 
 
-            if (employeeCertificates != null) {
-                Optional<Certificate> certificate1 = certificateRepository.findByIdAndProvinceId(
-                        certificate.getId(), certificate.getProvince().getId());
-                for (EmployeeCertificate employeeCertificate1: employeeCertificates){
-                    LocalDate validTo = employeeCertificate1.getValidTo();
-                    LocalDate validFrom = employeeCertificate1.getValidFrom();
-                    if ((certificate1.isPresent() && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
-                            || (employeeCertificates.size() >= 3 && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
-                    ) {
-                        throw new RuntimeException("Employee could this certificate by 1 province and <3 certificate : " + employeeDto.getId() + "\n" +
-                                employeeCertificateDto.getCertificate().getId() + "\n" +
-                                employeeDto.getProvinceId());
+                if (employeeCertificates != null) {
+                    Optional<Certificate> certificate1 = certificateRepository.findByIdAndProvinceId(
+                            certificate.getId(), certificate.getProvince().getId());
+                    for (EmployeeCertificate employeeCertificate1 : employeeCertificates) {
+                        LocalDate validTo = employeeCertificate1.getValidTo();
+                        LocalDate validFrom = employeeCertificate1.getValidFrom();
+                        if ((certificate1.isPresent() && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
+                                || (employeeCertificates.size() >= 3 && (employeeCertificateDto.getValidFrom().isAfter(validFrom) && employeeCertificateDto.getValidTo().isBefore(validTo)))
+                        ) {
+                            throw new RuntimeException("Employee could this certificate by 1 province and <3 certificate : " + employeeDto.getId() + "\n" +
+                                    employeeCertificateDto.getCertificate().getId() + "\n" +
+                                    employeeDto.getProvinceId());
+                        }
+                    }
+
+                }
+                if (certificate != null) {
+                    employeeCertificate.setCertificate(certificate);
+                    employeeCertificate.setValidTo(employeeCertificateDto.getValidTo());
+                    employeeCertificate.setValidFrom(employeeCertificateDto.getValidFrom());
+                }
+            }
+
+            if (employeeDto.getId() != null && employeeDto.getProvinceId() != null &&
+                    employeeDto.getDistrictId() != null && employeeDto.getCommuneId() != null) {
+
+                employee = employeeRepository.findById(employeeDto.getId()).orElse(null);
+                if (employee != null) {
+                    employee = employeeConverter.toEmployee(employeeDto);
+
+                } else {
+                    if (district != null && commune != null) {
+                        employee = employeeConverter.toEmployee(employeeDto);
+                    } else {
+                        return null;
                     }
                 }
+                employee.setProvince(province);
+                employee.setDistrict(district);
+                employee.setCommune(commune);
+                employeeCertificate.setEmployee(employee);
+            }
 
-            }
-            if (certificate != null) {
-                employeeCertificate.setCertificate(certificate);
-                employeeCertificate.setValidTo(employeeCertificateDto.getValidTo());
-                employeeCertificate.setValidFrom(employeeCertificateDto.getValidFrom());
-            }
+            employee = employeeRepository.save(employee);
+            employeeDto = employeeConverter.toDto(employee, employee.getEmployeeCertificates());
+            employeeCertificate = employeeCertificateRepository.save(employeeCertificate);
         }
-
-        if (employeeDto.getId() != null && employeeDto.getProvinceId() != null &&
-                employeeDto.getDistrictId() != null && employeeDto.getCommuneId() != null) {
-
-            employee = employeeRepository.findById(employeeDto.getId()).orElse(null);
-            if (employee != null) {
-                employee = employeeConverter.toEmployee(employeeDto);
-
-            } else {
-                if (district != null && commune != null) {
-                    employee = employeeConverter.toEmployee(employeeDto);
-                } else {
-                    return null;
-                }
-            }
-            employee.setProvince(province);
-            employee.setDistrict(district);
-            employee.setCommune(commune);
-            employeeCertificate.setEmployee(employee);
-        }
-
-        employee = employeeRepository.save(employee);
-        employeeDto = employeeConverter.toDto(employee, employee.getEmployeeCertificates());
-        employeeCertificate = employeeCertificateRepository.save(employeeCertificate);
-        return employeeDto;
+        return employeeDtos;
     }
 
+    public void importEmployees(InputStream excelFile) {
+        try {
+            Workbook workbook = new XSSFWorkbook(excelFile);
+            Sheet sheet = workbook.getSheetAt(0); // Assume the data is in the first sheet
+
+            List<EmployeeDto> employeeDtos = new ArrayList<>();
+
+            List<String> errorMessages = new ArrayList<>(); // Danh sách lưu trữ thông điệp lỗi
+            Iterator<Row> rowIterator = sheet.iterator();
+            rowIterator.next();
+
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                EmployeeDto employeeDto = readEmployeeFromRow(row);
+                employeeDtos.add(employeeDto);
+            }
+            // Iterate over rows (skip header row if any)
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                List<String> validationErrors = validateEmployees(employeeDtos);
+
+                if (!validationErrors.isEmpty()) {
+                    for (String errorMessage : validationErrors) {
+                        errorMessages.add("Row " + (i + 1) + ": " + errorMessage); // Lưu thông điệp lỗi và số dòng tương ứng
+                    }
+                } else {
+                    // Save employees to the database if there are no validation errors
+                    saveEmployee(employeeDtos);
+                }
+            }
+
+            if (!errorMessages.isEmpty()) {
+                // In ra thông điệp lỗi cho từng dòng và dừng quá trình nhập liệu
+                for (String errorMessage : errorMessages) {
+                    System.out.println(errorMessage);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<EmployeeDto> saveEmployee(List<EmployeeDto> employeeDtos) {
+        Employee employee = new Employee();
+        for (EmployeeDto employeeDto : employeeDtos) {
+            Province province = provinceRepository.findById(employeeDto.getProvinceId()).orElse(null);
+            District district = districtRepository.findByIdAndProvinceId(employeeDto.getDistrictId(), employeeDto.getProvinceId());
+            Commune commune = communeRepository.findByIdAndDistrictId(employeeDto.getCommuneId(), employeeDto.getDistrictId());
+
+            if (employeeDto.getId() != null && employeeDto.getProvinceId() != null &&
+                    employeeDto.getDistrictId() != null && employeeDto.getCommuneId() != null) {
+
+                employee = employeeRepository.findById(employeeDto.getId()).orElse(null);
+                if (employee != null) {
+                    employee = employeeConverter.toEmployee(employeeDto);
+
+                } else {
+                    if (district != null && commune != null) {
+                        employee = employeeConverter.toEmployee(employeeDto);
+                    } else {
+                        return null;
+                    }
+                }
+                employee.setProvince(province);
+                employee.setDistrict(district);
+                employee.setCommune(commune);
+
+            }
+            employee = employeeRepository.save(employee);
+            employeeDto = employeeConverter.toDto(employee, employee.getEmployeeCertificates());
+        }
+        return employeeDtos;
+    }
 }
