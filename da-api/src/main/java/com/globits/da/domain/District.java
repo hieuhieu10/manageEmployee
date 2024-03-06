@@ -17,7 +17,7 @@ public class District extends BaseObject {
     @JoinColumn(name = "province_id")
     private Province province;
 
-    @OneToMany(mappedBy = "district", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "district", cascade = CascadeType.ALL)//,orphanRemoval = true
     @JsonIgnore
     private List<Commune> communes;
 

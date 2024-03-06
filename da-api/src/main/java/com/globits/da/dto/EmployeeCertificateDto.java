@@ -3,13 +3,19 @@ package com.globits.da.dto;
 import com.globits.da.domain.Certificate;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
 
 @Component
 public class EmployeeCertificateDto {
-    private CertificateDto certificateDto;
+
     private EmployeeDto employeeDto;
+    private CertificateDto certificateDto;
+
+//    @NotBlank(message = "validFrom is required")
     private LocalDate validFrom;
+
+//    @NotBlank(message = "validTo is required")
     private LocalDate validTo;
 
     public CertificateDto getCertificateDto() {

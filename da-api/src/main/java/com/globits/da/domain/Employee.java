@@ -1,5 +1,6 @@
 package com.globits.da.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.globits.core.domain.BaseObject;
 
 import javax.persistence.*;
@@ -19,11 +20,11 @@ public class Employee extends BaseObject {
     @Column(name = "age")
     private Integer age;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "province_id")
     private Province province;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "district_id")
     private District district;
 
@@ -31,7 +32,8 @@ public class Employee extends BaseObject {
     @JoinColumn(name = "commune_id")
     private Commune commune;
 
-    @OneToMany(mappedBy = "employee")
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+
     private List<EmployeeCertificate> employeeCertificates;
 
     public String getCode() {

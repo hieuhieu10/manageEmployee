@@ -5,10 +5,10 @@ import com.globits.da.service.impl.CertificateServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/certificate")
@@ -21,6 +21,16 @@ public class RestCertificateController {
     public ResponseEntity<CertificateDto> saveCertificate(@RequestBody CertificateDto certificateDto){
         CertificateDto result = certificateServiceImpl.saveCertificate(certificateDto);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+    @RequestMapping(value = "/showCertificate", method = RequestMethod.GET)
+    public ResponseEntity<Map<String, Object>> showCertificate(){
+        Map<String, Object> result = certificateServiceImpl.getCertificates();
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+    @RequestMapping(value = "/deleteCertificateById", method = RequestMethod.DELETE)
+    public ResponseEntity<String> deleteCertificateById(@RequestParam ("id") UUID id){
+         certificateServiceImpl.deleteCertificateById(id);
+        return ResponseEntity.ok("Certificate with ID " + id + " has been deleted");
     }
 }
 

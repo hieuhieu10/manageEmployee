@@ -1,6 +1,7 @@
 package com.globits.da.repository;
 
 import com.globits.da.domain.EmployeeCertificate;
+import com.globits.da.dto.EmployeeCertificateDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,8 @@ public interface EmployeeCertificateRepository extends JpaRepository<EmployeeCer
     List<EmployeeCertificate> findAllByCertificateId(UUID id);
 
     List<EmployeeCertificate> findAllByEmployeeIdAndCertificateId(UUID id, UUID id1);
+
+    EmployeeCertificate findByEmployeeIdAndCertificateId(UUID id, UUID id1);
+
+    EmployeeCertificate findByEmployeeId(UUID employeeId);
 }

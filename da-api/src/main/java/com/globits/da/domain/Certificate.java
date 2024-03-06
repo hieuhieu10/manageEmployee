@@ -1,5 +1,6 @@
 package com.globits.da.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.globits.core.domain.BaseObject;
 
 import javax.persistence.*;
@@ -11,7 +12,8 @@ public class Certificate extends BaseObject {
 
     private String name;
 
-    @OneToMany(mappedBy = "certificate")
+    @OneToMany(mappedBy = "certificate",cascade = CascadeType.ALL)
+
     private List<EmployeeCertificate> employeeCertificates;
 
     @ManyToOne

@@ -1,5 +1,6 @@
 package com.globits.da.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.globits.core.domain.BaseObject;
 
 import java.time.LocalDate;
@@ -11,10 +12,12 @@ public class EmployeeCertificate extends BaseObject {
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
+    @JsonIgnore
     private Employee employee;
 
     @ManyToOne
     @JoinColumn(name = "certificate_id")
+    @JsonIgnore
     private Certificate certificate;
 
     private LocalDate validFrom;

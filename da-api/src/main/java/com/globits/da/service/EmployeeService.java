@@ -18,5 +18,6 @@ public interface EmployeeService  {
     void deleteEmployeesById(UUID id);
     ByteArrayOutputStream exportToExcel(List<Employee> employees);
     List<EmployeeDto> saveEmployees(List<EmployeeDto> employeeDtos);
+    List<EmployeeDto> saveEmployee(List<EmployeeDto> employeeDtos);
     void importEmployees(InputStream excelFile);
 }

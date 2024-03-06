@@ -95,6 +95,7 @@ public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> impl
     @Override
     public List<EmployeeDto> saveEmployees(List<EmployeeDto> employeeDtos) {
         Employee employee = new Employee();
+        Certificate certificate = new Certificate();
         EmployeeCertificate employeeCertificate = new EmployeeCertificate();
         for (EmployeeDto employeeDto : employeeDtos) {
             Province province = provinceRepository.findById(employeeDto.getProvinceId()).orElse(null);
@@ -102,7 +103,11 @@ public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> impl
             Commune commune = communeRepository.findByIdAndDistrictId(employeeDto.getCommuneId(), employeeDto.getDistrictId());
 
             for (EmployeeCertificate employeeCertificateDto : employeeDto.getEmployeeCertificates()) {
-                Certificate certificate = certificateRepository.findById(employeeCertificateDto.getCertificate().getId()).orElse(null);
+                if (employeeCertificateDto.getCertificate().getId() != null){
+                    certificate = certificateRepository.findById(employeeCertificateDto.getCertificate().getId()).orElse(null);
+                }
+
+
                 List<EmployeeCertificate> employeeCertificates = employeeCertificateRepository.findAllByEmployeeIdAndCertificateId(
                         employeeDto.getId(), employeeCertificateDto.getCertificate().getId());
 
@@ -199,6 +204,7 @@ public class EmployeeServiceImpl extends GenericServiceImpl<Employee, UUID> impl
         }
     }
 
+    @Override
     public List<EmployeeDto> saveEmployee(List<EmployeeDto> employeeDtos) {
         Employee employee = new Employee();
         for (EmployeeDto employeeDto : employeeDtos) {

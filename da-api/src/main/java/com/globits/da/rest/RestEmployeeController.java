@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -49,10 +50,14 @@ public class RestEmployeeController {
 
         return new ResponseEntity<>(stream.toByteArray(), headers, HttpStatus.OK);
     }
-
-    @RequestMapping(value = "/saveEmployee", method = RequestMethod.POST)
-    public ResponseEntity<List<EmployeeDto>> saveEmployee(@Validated @RequestBody List<EmployeeDto> employeeDtos){
+    @RequestMapping(value = "/saveEmployees", method = RequestMethod.POST)
+    public ResponseEntity<List<EmployeeDto>> saveEmployees(@Valid @RequestBody List<EmployeeDto> employeeDtos){
         List<EmployeeDto> result = employeeServiceImpl.saveEmployees(employeeDtos);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+    @RequestMapping(value = "/saveEmployee", method = RequestMethod.POST)
+    public ResponseEntity<List<EmployeeDto>> saveEmployee(@Valid @RequestBody List<EmployeeDto> employeeDtos){
+        List<EmployeeDto> result = employeeServiceImpl.saveEmployee(employeeDtos);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
     @RequestMapping(value = "/importEmployees", method = RequestMethod.POST)

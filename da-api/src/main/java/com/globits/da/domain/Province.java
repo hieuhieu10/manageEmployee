@@ -17,7 +17,7 @@ public class Province  extends BaseObject {
     @JsonIgnore
     private List<District> districts;
 
-    @OneToMany(mappedBy = "province")
+    @OneToMany(mappedBy = "province",cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Certificate> certificates;
 
